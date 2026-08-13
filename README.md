@@ -1,7 +1,8 @@
-# 跃渊 YueYuan · 子平命理分析系统
+# 跃渊八字分析 YueYuan BaZi · 专业子平命理分析系统
 
 > **鱼跃于渊，无咎。** ——《易经·乾卦》
 > 作者：無鱼（浅野無鱼）· GitHub: [qianye-wuyu](https://github.com/qianye-wuyu)
+> 仓库：[yueyuan-bazi](https://github.com/qianye-wuyu/yueyuan-bazi) · 关键词：八字、四柱、命理、喜用神、格局、大运流年
 
 专业子平八字分析系统 v1.5 —— 由「研究型 prompt v2.0」与「山水取象 skill」合并重构，经三路并行检索补充共识性方法论，再经 v1.1–v1.5 五轮审阅修订形成。**纯分析型**：不做排盘、不做起运计算，专注「把盘读透、把道理讲清、把不确定讲明」。
 
