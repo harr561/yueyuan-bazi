@@ -90,7 +90,7 @@ def paipan(year, month, day, hour, gender, minute=0):
     参数：
       year/month/day/hour/minute  阳历年月日时分（hour 0-23，minute 0-59）
       gender  性别：1=男，0=女
-    返回：结构化盘面字典，含四柱、五行、纳音、十神、藏干、大运。
+    返回：结构化盘面字典，含四柱、五行、纳音、十神、藏干、空亡、十二长生、天月二德、大运。
     """
     solar = Solar.fromYmdHms(year, month, day, hour, minute, 0)
     lunar = solar.getLunar()
@@ -138,12 +138,38 @@ def paipan(year, month, day, hour, gender, minute=0):
                 "止": dy.getEndYear(),
             })
 
+    # 神煞（四支按三合局查 + 日干查；天月二德按月支查）
+    shensha = {}
+    for k, gz in pillars.items():
+        zhi = gz[1]
+        shensha[f"{k}支"] = {
+            "桃花": tao_hua(zhi),
+            "驿马": yi_ma(zhi),
+            "华盖": hua_gai(zhi),
+            "将星": jiang_xing(zhi),
+        }
+    shensha["日干"] = {
+        "天乙贵人": list(tian_yi_gui_ren(ec.getDayGan())),
+        "文昌": wen_chang(ec.getDayGan()),
+        "羊刃": yang_ren(ec.getDayGan()),
+    }
+
     return {
         "四柱": pillars,
         "五行": wuxing,
         "纳音": nayin,
         "十神": shishen,
         "藏干": canggan,
+        "空亡": {
+            "年柱": ec.getYearXunKong(),
+            "日柱": ec.getDayXunKong(),
+        },
+        "十二长生": ec.getDayDiShi(),  # 日主在月支的十二长生地势
+        "神煞": shensha,
+        "天月二德": {
+            "天德": TIAN_DE.get(ec.getMonthZhi()),
+            "月德": YUE_DE.get(ec.getMonthZhi()),
+        },
         "起运": {
             "年": yun.getStartYear(),
             "月": yun.getStartMonth(),
@@ -281,6 +307,21 @@ WEN_CHANG = {
     "壬": "寅", "癸": "卯",
 }
 
+# 天月二德（按月支查天干，传统歌诀；【待核对】——存在版本差异，仅作主题提示）
+# 天德口诀：正丁二申三壬四辛五亥六甲七癸八寅九丙十乙十一巳十二庚
+TIAN_DE = {
+    "寅": "丁", "卯": "申", "辰": "壬", "巳": "辛",
+    "午": "亥", "未": "甲", "申": "癸", "酉": "寅",
+    "戌": "丙", "亥": "乙", "子": "巳", "丑": "庚",
+}
+# 月德口诀：寅午戌月在丙、申子辰月在壬、亥卯未月在甲、巳酉丑月在庚
+YUE_DE = {
+    "寅": "丙", "午": "丙", "戌": "丙",
+    "申": "壬", "子": "壬", "辰": "壬",
+    "亥": "甲", "卯": "甲", "未": "甲",
+    "巳": "庚", "酉": "庚", "丑": "庚",
+}
+
 
 def _zhi_sha(zhi, sha_table):
     """按「地支」查神煞（桃花/驿马/华盖/将星 通用）。"""
@@ -325,6 +366,16 @@ def wen_chang(gan):
     return WEN_CHANG.get(gan)
 
 
+def tian_de(month_zhi):
+    """天德贵人（按月支查天干，传统歌诀，待核对）。例：tian_de('寅') -> '丁'"""
+    return TIAN_DE.get(month_zhi)
+
+
+def yue_de(month_zhi):
+    """月德贵人（按月支查天干，传统歌诀，待核对）。例：yue_de('午') -> '丙'"""
+    return YUE_DE.get(month_zhi)
+
+
 # ======================================================================
 # 五、自测（直接运行本文件时执行）
 # ======================================================================
@@ -348,6 +399,10 @@ if __name__ == "__main__":
     print("五行：", " ".join(pan["五行"].values()))
     print("纳音：", " ".join(pan["纳音"].values()))
     print("十神：", " ".join(f"{k}:{v}" for k, v in pan["十神"].items()))
+    print("空亡：", pan["空亡"])
+    print("十二长生：", pan["十二长生"])
+    print("神煞：", pan["神煞"])
+    print("天月二德：", pan["天月二德"])
     print("起运：", pan["起运"])
     print("大运：", " → ".join(d["干支"] for d in pan["大运"]))
 
@@ -413,6 +468,24 @@ if __name__ == "__main__":
     assert wen_chang("庚") == "亥", "庚见亥"
     assert wen_chang("癸") == "卯", "癸见卯"
     print("神煞 23 项断言全部通过 ✅")
+
+    print("\n===== 天月二德自测（传统歌诀，待核对）=====")
+    assert tian_de("寅") == "丁", "寅月天德丁"
+    assert tian_de("丑") == "庚", "丑月天德庚"
+    assert yue_de("午") == "丙", "午月月德丙"
+    assert yue_de("申") == "壬", "申月月德壬"
+    print("天月二德 4 项断言通过 ✅")
+
+    print("\n===== 新增字段自测（空亡/十二长生/神煞）=====")
+    pan2 = paipan(2005, 5, 29, 8, 1)
+    assert pan2["空亡"]["年柱"], "应输出年柱空亡"
+    assert pan2["空亡"]["日柱"], "应输出日柱空亡"
+    assert pan2["十二长生"], "应输出日主十二长生"
+    assert pan2["天月二德"]["天德"], "应输出天德"
+    assert pan2["神煞"]["年支"]["桃花"], "应输出年支桃花"
+    assert pan2["神煞"]["日干"]["天乙贵人"], "应输出日干天乙贵人"
+    assert pan2["神煞"]["日干"]["羊刃"] is None or pan2["神煞"]["日干"]["羊刃"], "应输出日干羊刃（阴干为 None）"
+    print("新增字段 7 项断言通过 ✅")
 
     print("\n===== 用你的八字做一次完整盘面演示 =====")
     print("日主癸水，日支丑。")

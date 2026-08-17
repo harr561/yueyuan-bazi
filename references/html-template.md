@@ -45,7 +45,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow">跃渊 v1.5 · {{坤造/乾造}}</div>
+  <div class="eyebrow">跃渊 v{{版本号}} · {{坤造/乾造}}</div>
   <h1>{{姓名}}</h1>
   <div class="tag-row">
     <span class="badge">不确定度：{{高/中/低}}</span>
@@ -181,3 +181,4 @@ tr:last-child td { border-bottom:none; }
 3. 路线判定区：临界盘并列两条相反路线（对称卡）；一般盘用「当前判断 + 已排除」形态。
 4. 身心板块免责声明必须保留（文末弱化）。
 5. 五行色只用于干支/藏干/喜忌字标签；十神不上色。
+6. **版本号使用 `{{版本号}}` 占位符**，产出时填 SKILL.md frontmatter 的当前版本（v1.8），随 SKILL.md 版本同步更新，禁止写死旧版本号。
